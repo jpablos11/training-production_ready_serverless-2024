@@ -23,6 +23,8 @@ frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs18.x
+  stage: dev
+  region: us-east-1
 
 functions:
   hello:
@@ -30,4 +32,11 @@ functions:
     events:
         - http:
             path: /
+            method: get
+
+  gran_wawito:
+    handler: gran_wawito.hello
+    events:
+        - http:
+            path: /gran_wawito
             method: get
