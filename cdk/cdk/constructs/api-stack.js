@@ -6,11 +6,22 @@ class ApiStack extends Stack {
   constructor(scope, id, props) {
     super(scope, id, props)
 
-    const lambdaFunction = new Function(this, 'HandlerFunction', {
+    const getIndexFunction = new Function(this, 'GetIndex', {
       runtime: Runtime.NODEJS_18_X,
-      handler: 'handler.hello',
+      handler: 'get-index.handler',
       code: Code.fromAsset('functions'),
     })
+
+    const getRestaurantsFunction = new Function(this, 'GetRestaurants', {
+      runtime: Runtime.NODEJS_18_X,
+      handler: 'get-restaurants.handler',
+      code: Code.fromAsset('functions'),
+      environment: {
+        default_results: '8',
+        restaurants_table: props.restaurantsTable.tableName
+      }
+    })
+    props.restaurantsTable.grantReadData(getRestaurantsFunction)
 
     const api = new RestApi(this, `${props.stageName}-MyApi`, {
       deployOptions: {
@@ -18,8 +29,10 @@ class ApiStack extends Stack {
       }
     })
 
-    const lambdaIntegration = new LambdaIntegration(lambdaFunction)
-    api.root.addMethod('GET', lambdaIntegration)
+    const getIndexLambdaIntegration = new LambdaIntegration(getIndexFunction)
+    const getRestaurantsLambdaIntegration = new LambdaIntegration(getRestaurantsFunction)
+    api.root.addMethod('GET', getIndexLambdaIntegration)
+    api.root.addResource('restaurants').addMethod('GET', getRestaurantsLambdaIntegration)
   }
 }
 
