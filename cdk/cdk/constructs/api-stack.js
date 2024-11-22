@@ -1,7 +1,8 @@
 const { Stack, Fn } = require('aws-cdk-lib')
 const { Runtime, Code, Function } = require('aws-cdk-lib/aws-lambda')
-const { RestApi, LambdaIntegration } = require('aws-cdk-lib/aws-apigateway')
+const { RestApi, LambdaIntegration, AuthorizationType, CfnAuthorizer } = require('aws-cdk-lib/aws-apigateway')
 const { NodejsFunction } = require('aws-cdk-lib/aws-lambda-nodejs')
+const { PolicyStatement, Effect } = require('aws-cdk-lib/aws-iam')
 
 class ApiStack extends Stack {
   constructor(scope, id, props) {
@@ -32,7 +33,9 @@ class ApiStack extends Stack {
         }
       },
       environment: {
-        restaurants_api: Fn.sub(`https://\${${apiLogicalId}}.execute-api.\${AWS::Region}.amazonaws.com/${props.stageName}/restaurants`)
+        restaurants_api: Fn.sub(`https://\${${apiLogicalId}}.execute-api.\${AWS::Region}.amazonaws.com/${props.stageName}/restaurants`),
+        cognito_user_pool_id: props.cognitoUserPool.userPoolId,
+        cognito_client_id: props.webUserPoolClient.userPoolClientId
       }
     })
 
@@ -45,12 +48,52 @@ class ApiStack extends Stack {
         restaurants_table: props.restaurantsTable.tableName
       }
     })
-    props.restaurantsTable.grantReadData(getRestaurantsFunction)    
+    props.restaurantsTable.grantReadData(getRestaurantsFunction)
+
+    const searchRestaurantsFunction = new Function(this, 'SearchRestaurants', {
+      runtime: Runtime.NODEJS_18_X,
+      handler: 'search-restaurants.handler',
+      code: Code.fromAsset('functions'),
+      environment: {
+        default_results: '8',
+        restaurants_table: props.restaurantsTable.tableName
+      }
+    })
+    props.restaurantsTable.grantReadData(searchRestaurantsFunction)    
 
     const getIndexLambdaIntegration = new LambdaIntegration(getIndexFunction)
     const getRestaurantsLambdaIntegration = new LambdaIntegration(getRestaurantsFunction)
+    const searchRestaurantsLambdaIntegration = new LambdaIntegration(searchRestaurantsFunction)
+
+    const cognitoAuthorizer = new CfnAuthorizer(this, 'CognitoAuthorizer', {
+      name: 'CognitoAuthorizer',
+      type: 'COGNITO_USER_POOLS',
+      identitySource: 'method.request.header.Authorization',
+      providerArns: [props.cognitoUserPool.userPoolArn],
+      restApiId: api.restApiId,
+    })
+
     api.root.addMethod('GET', getIndexLambdaIntegration)
-    api.root.addResource('restaurants').addMethod('GET', getRestaurantsLambdaIntegration)
+    const restaurantsResource = api.root.addResource('restaurants')
+    restaurantsResource.addMethod('GET', getRestaurantsLambdaIntegration, {
+        authorizationType: AuthorizationType.IAM
+      })
+    restaurantsResource.addResource('search')
+      .addMethod('POST', searchRestaurantsLambdaIntegration, {
+        authorizationType: AuthorizationType.COGNITO,
+        authorizer: {
+          authorizerId: cognitoAuthorizer.ref
+        }
+      })
+
+    const apiInvokePolicy = new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ['execute-api:Invoke'],
+      resources: [
+        Fn.sub(`arn:aws:execute-api:\${AWS::Region}:\${AWS::AccountId}:\${${apiLogicalId}}/${props.stageName}/GET/restaurants`)
+      ]
+    })
+    getIndexFunction.role?.addToPrincipalPolicy(apiInvokePolicy)
   }
 }
 
