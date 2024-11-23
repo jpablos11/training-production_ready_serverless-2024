@@ -7,12 +7,16 @@
   "scripts": {
     "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
     "cdk": "cdk",
-    "test": "jest"
+    "test": "jest --silent"
   },
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.696.0",
     "@aws-sdk/lib-dynamodb": "^3.696.0",
+    "@types/jest": "^29.5.14",
     "aws-cdk": "2.168.0",
+    "awscred": "^1.5.0",
+    "cheerio": "^1.0.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
     "jest": "^29.7.0"
   },
@@ -21,6 +25,7 @@
     "aws4": "^1.13.2",
     "axios": "^1.7.7",
     "constructs": "^10.0.0",
+    "lodash": "^4.17.21",
     "mustache": "^4.2.0"
   }
 }
