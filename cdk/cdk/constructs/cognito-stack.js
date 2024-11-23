@@ -45,7 +45,7 @@ class CognitoStack extends Stack {
       preventUserExistenceErrors: true
     })
 
-    new UserPoolClient(this, 'ServerUserPoolClient', {
+    const serverUserPoolClient = new UserPoolClient(this, 'ServerUserPoolClient', {
       userPool,
       authFlows: {
         adminUserPassword: true
@@ -55,6 +55,7 @@ class CognitoStack extends Stack {
 
     this.cognitoUserPool = userPool
     this.webUserPoolClient = webUserPoolClient
+    this.serverUserPoolClient = serverUserPoolClient
   }
 }
 
