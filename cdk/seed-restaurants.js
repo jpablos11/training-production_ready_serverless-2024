@@ -55,6 +55,8 @@ const putReqs = restaurants.map(x => ({
   }
 }))
 
+// Change here to trigger CI/CD
+
 const cmd = new BatchWriteCommand({
   RequestItems: {
     [process.env.restaurants_table]: putReqs

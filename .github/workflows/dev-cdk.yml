@@ -1,9 +1,11 @@
 name: deploy dev cdk
 
-
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+    paths:
+      - 'cdk/**'
 
 jobs:
   deploy:
