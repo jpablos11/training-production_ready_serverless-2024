@@ -39,27 +39,51 @@ class ApiStack extends Stack {
       }
     })
 
-    const getRestaurantsFunction = new Function(this, 'GetRestaurants', {
+    const getRestaurantsFunction = new NodejsFunction(this, 'GetRestaurants', {
       runtime: Runtime.NODEJS_18_X,
-      handler: 'get-restaurants.handler',
-      code: Code.fromAsset('functions'),
+      handler: 'handler',
+      entry: 'functions/get-restaurants.js',
       environment: {
-        default_results: '8',
+        middy_cache_enabled: "true",
+        middy_cache_expiry_milliseconds: "60000", // 1 mins
+        service_name: props.serviceName,
+        stage_name: props.stageName,
         restaurants_table: props.restaurantsTable.tableName
       }
     })
     props.restaurantsTable.grantReadData(getRestaurantsFunction)
-
-    const searchRestaurantsFunction = new Function(this, 'SearchRestaurants', {
+    getRestaurantsFunction.role.addToPrincipalPolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['ssm:GetParameters*'],
+        resources: [
+          Fn.sub(`arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.stageName}/get-restaurants/config`)
+        ]
+      })
+    )
+    
+    const searchRestaurantsFunction = new NodejsFunction(this, 'SearchRestaurants', {
       runtime: Runtime.NODEJS_18_X,
-      handler: 'search-restaurants.handler',
-      code: Code.fromAsset('functions'),
+      handler: 'handler',
+      entry: 'functions/search-restaurants.js',
       environment: {
-        default_results: '8',
+        middy_cache_enabled: "true",
+        middy_cache_expiry_milliseconds: "60000", // 1 mins
+        service_name: props.serviceName,
+        stage_name: props.stageName,
         restaurants_table: props.restaurantsTable.tableName
       }
     })
-    props.restaurantsTable.grantReadData(searchRestaurantsFunction)    
+    props.restaurantsTable.grantReadData(searchRestaurantsFunction)
+    searchRestaurantsFunction.role.addToPrincipalPolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['ssm:GetParameters*'],
+        resources: [
+          Fn.sub(`arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.stageName}/search-restaurants/config`)
+        ]
+      })
+    )
 
     const getIndexLambdaIntegration = new LambdaIntegration(getIndexFunction)
     const getRestaurantsLambdaIntegration = new LambdaIntegration(getRestaurantsFunction)
