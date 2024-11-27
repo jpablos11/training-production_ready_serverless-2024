@@ -47,7 +47,7 @@ class ApiStack extends Stack {
         middy_cache_enabled: "true",
         middy_cache_expiry_milliseconds: "60000", // 1 mins
         service_name: props.serviceName,
-        stage_name: props.stageName,
+        ssm_stage_name: props.ssmStageName,
         restaurants_table: props.restaurantsTable.tableName
       }
     })
@@ -57,7 +57,7 @@ class ApiStack extends Stack {
         effect: Effect.ALLOW,
         actions: ['ssm:GetParameters*'],
         resources: [
-          Fn.sub(`arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.stageName}/get-restaurants/config`)
+          Fn.sub(`arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/get-restaurants/config`)
         ]
       })
     )
@@ -70,7 +70,7 @@ class ApiStack extends Stack {
         middy_cache_enabled: "true",
         middy_cache_expiry_milliseconds: "60000", // 1 mins
         service_name: props.serviceName,
-        stage_name: props.stageName,
+        ssm_stage_name: props.ssmStageName,
         restaurants_table: props.restaurantsTable.tableName
       }
     })
@@ -80,7 +80,7 @@ class ApiStack extends Stack {
         effect: Effect.ALLOW,
         actions: ['ssm:GetParameters*'],
         resources: [
-          Fn.sub(`arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.stageName}/search-restaurants/config`)
+          Fn.sub(`arn:aws:ssm:\${AWS::Region}:\${AWS::AccountId}:parameter/${props.serviceName}/${props.ssmStageName}/search-restaurants/config`)
         ]
       })
     )
