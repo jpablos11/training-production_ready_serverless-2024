@@ -1,0 +1,3 @@
+What is next: 
+  In: Exercise: Processing events with EventBridge and Lambda
+  Section: Add integration test for place-order function
