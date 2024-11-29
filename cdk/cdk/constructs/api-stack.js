@@ -101,9 +101,20 @@ class ApiStack extends Stack {
       })
     )
 
+    const placeOrderFunction = new NodejsFunction(this, 'PlaceOrder', {
+      runtime: Runtime.NODEJS_18_X,
+      handler: 'handler',
+      entry: 'functions/place-order.js',
+      environment: {                
+        bus_name: props.orderEventBus.eventBusName
+      }
+    })
+    props.orderEventBus.grantPutEventsTo(placeOrderFunction)
+
     const getIndexLambdaIntegration = new LambdaIntegration(getIndexFunction)
     const getRestaurantsLambdaIntegration = new LambdaIntegration(getRestaurantsFunction)
     const searchRestaurantsLambdaIntegration = new LambdaIntegration(searchRestaurantsFunction)
+    const placeOrderLambdaIntegration = new LambdaIntegration(placeOrderFunction)
 
     const cognitoAuthorizer = new CfnAuthorizer(this, 'CognitoAuthorizer', {
       name: 'CognitoAuthorizer',
@@ -120,6 +131,13 @@ class ApiStack extends Stack {
       })
     restaurantsResource.addResource('search')
       .addMethod('POST', searchRestaurantsLambdaIntegration, {
+        authorizationType: AuthorizationType.COGNITO,
+        authorizer: {
+          authorizerId: cognitoAuthorizer.ref
+        }
+      })
+    api.root.addResource('orders')
+      .addMethod('POST', placeOrderLambdaIntegration, {
         authorizationType: AuthorizationType.COGNITO,
         authorizer: {
           authorizerId: cognitoAuthorizer.ref
