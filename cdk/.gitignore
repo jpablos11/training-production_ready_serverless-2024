@@ -6,3 +6,4 @@ cdk.out
 
 # Other
 .env
+.env*
