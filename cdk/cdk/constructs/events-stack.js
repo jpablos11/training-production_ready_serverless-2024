@@ -2,11 +2,14 @@ const { Stack, Duration, CfnOutput } = require('aws-cdk-lib')
 const { EventBus, Rule, RuleTargetInput, EventField } = require('aws-cdk-lib/aws-events')
 const { LambdaFunction, SqsQueue } = require('aws-cdk-lib/aws-events-targets')
 const { Topic, Subscription } = require('aws-cdk-lib/aws-sns')
+const { EmailSubscription } = require("aws-cdk-lib/aws-sns-subscriptions")
 const { Runtime } = require('aws-cdk-lib/aws-lambda')
 const { NodejsFunction } = require('aws-cdk-lib/aws-lambda-nodejs')
 const { Queue } = require('aws-cdk-lib/aws-sqs')
 const { PolicyStatement, ServicePrincipal } = require('aws-cdk-lib/aws-iam')
 const { SqsDestination } = require('aws-cdk-lib/aws-lambda-destinations')
+const { Alarm, ComparisonOperator, TreatMissingData } = require('aws-cdk-lib/aws-cloudwatch')
+const { SnsAction } = require('aws-cdk-lib/aws-cloudwatch-actions')
 
 class EventsStack extends Stack {
   constructor(scope, id, props) {
@@ -34,7 +37,7 @@ class EventsStack extends Stack {
     })
     orderEventBus.grantPutEventsTo(notifyRestaurantFunction)
     restaurantNotificationTopic.grantPublish(notifyRestaurantFunction)
-    props.idempotencyTable.grantReadWriteData(notifyRestaurantFunction)  
+    props.idempotencyTable.grantReadWriteData(notifyRestaurantFunction)
 
     const rule = new Rule(this, 'Rule', {
       eventBus: orderEventBus,
@@ -44,6 +47,29 @@ class EventsStack extends Stack {
       }
     })
     rule.addTarget(new LambdaFunction(notifyRestaurantFunction))
+
+    const alarmTopic = new Topic(this, 'AlarmTopic')
+    alarmTopic.addSubscription(new EmailSubscription('jpablos11@gmail.com'))
+
+    const onFailureAlarm = new Alarm(this, 'OnFailureQueueAlarm', {
+      alarmName: `[${props.stageName}][NotifyRestaurant function] Failed events detected in OnFailure destination`,
+      metric: onFailureQueue.metricApproximateNumberOfMessagesVisible(),
+      comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+      threshold: 0,
+      evaluationPeriods: 1,
+      treatMissingData: TreatMissingData.NOT_BREACHING
+    })
+    onFailureAlarm.addAlarmAction(new SnsAction(alarmTopic))
+
+    const destinationDeliveryAlarm = new Alarm(this, 'DestinationDeliveryFailuresAlarm', {
+      alarmName: `[${props.stageName}][NotifyRestaurant function] Failed to deliver failed events to OnFailure destination`,
+      metric: notifyRestaurantFunction.metric('DestinationDeliveryFailures'),
+      comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+      threshold: 0,
+      evaluationPeriods: 1,
+      treatMissingData: TreatMissingData.NOT_BREACHING
+    })
+    destinationDeliveryAlarm.addAlarmAction(new SnsAction(alarmTopic))
 
     const isE2eTest = props.stageName.startsWith('dev')
     if (isE2eTest) {
