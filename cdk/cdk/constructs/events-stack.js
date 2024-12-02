@@ -2,7 +2,8 @@ const { Stack, Duration, CfnOutput } = require('aws-cdk-lib')
 const { EventBus, Rule, RuleTargetInput, EventField } = require('aws-cdk-lib/aws-events')
 const { LambdaFunction, SqsQueue } = require('aws-cdk-lib/aws-events-targets')
 const { Topic, Subscription } = require('aws-cdk-lib/aws-sns')
-const { Function, Code, Runtime } = require('aws-cdk-lib/aws-lambda')
+const { Runtime } = require('aws-cdk-lib/aws-lambda')
+const { NodejsFunction } = require('aws-cdk-lib/aws-lambda-nodejs')
 const { Queue } = require('aws-cdk-lib/aws-sqs')
 const { PolicyStatement, ServicePrincipal } = require('aws-cdk-lib/aws-iam')
 
@@ -18,17 +19,19 @@ class EventsStack extends Stack {
 
     const restaurantNotificationTopic = new Topic(this, 'RestaurantNotificationTopic')
 
-    const notifyRestaurantFunction = new Function(this, 'NotifyRestaurantFunction', {
+    const notifyRestaurantFunction = new NodejsFunction(this, 'NotifyRestaurantFunction', {
       runtime: Runtime.NODEJS_18_X,
-      handler: 'notify-restaurant.handler',
-      code: Code.fromAsset('functions'),
+      handler: 'handler',
+      entry: 'functions/notify-restaurant.js',
       environment: {
         bus_name: orderEventBus.eventBusName,
-        restaurant_notification_topic: restaurantNotificationTopic.topicArn
+        restaurant_notification_topic: restaurantNotificationTopic.topicArn,
+        idempotency_table: props.idempotencyTable.tableName
       }
     })
     orderEventBus.grantPutEventsTo(notifyRestaurantFunction)
     restaurantNotificationTopic.grantPublish(notifyRestaurantFunction)
+    props.idempotencyTable.grantReadWriteData(notifyRestaurantFunction)
 
     const rule = new Rule(this, 'Rule', {
       eventBus: orderEventBus,

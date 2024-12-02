@@ -5,7 +5,7 @@ class DatabaseStack extends Stack {
   constructor(scope, id, props) {
     super(scope, id, props)
 
-    const restaurantstable = new Table(this, 'RestaurantsTable', {
+    const restaurantsTable = new Table(this, 'RestaurantsTable', {
       partitionKey: {
         name: 'name',
         type: AttributeType.STRING,
@@ -13,7 +13,17 @@ class DatabaseStack extends Stack {
       billingMode: BillingMode.PAY_PER_REQUEST
     })
 
-    this.restaurantsTable = restaurantstable
+    const idempotencyTable = new Table(this, 'IdempotencyTable', {
+      partitionKey: {
+        name: 'id',
+        type: AttributeType.STRING,
+      },
+      timeToLiveAttribute: 'expiration',
+      billingMode: BillingMode.PAY_PER_REQUEST
+    })
+
+    this.restaurantsTable = restaurantsTable
+    this.idempotencyTable = idempotencyTable
   }
 }
 

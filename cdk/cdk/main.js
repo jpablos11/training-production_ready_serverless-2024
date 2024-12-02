@@ -27,13 +27,14 @@ const cognitoStack = new CognitoStack(app, `CognitoStack-${stageName}`, { stageN
 const eventsStack = new EventsStack(app, `EventsStack-${stageName}`, {
   serviceName,
   stageName,
-  ssmStageName
+  ssmStageName,
+  idempotencyTable: dbStack.idempotencyTable
 })
 new ApiStack(app, `ApiStack-${stageName}`, {
   serviceName,
   stageName,
   ssmStageName,
-  restaurantsTable: dbStack.restaurantsTable,
+  restaurantsTable: dbStack.restaurantsTable,  
   cognitoUserPool: cognitoStack.cognitoUserPool,
   webUserPoolClient: cognitoStack.webUserPoolClient,
   serverUserPoolClient: cognitoStack.serverUserPoolClient,
