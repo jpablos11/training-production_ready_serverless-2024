@@ -5,6 +5,7 @@ const { ApiStack } = require('./constructs/api-stack')
 const { DatabaseStack } = require('./constructs/database-stack')
 const { CognitoStack } = require('./constructs/cognito-stack')
 const { EventsStack } = require('./constructs/events-stack')
+const { OrderFlowStack } = require('./constructs/order-flow-stack')
 
 const app = new cdk.App()
 let stageName = app.node.tryGetContext('stageName')
@@ -39,4 +40,12 @@ new ApiStack(app, `ApiStack-${stageName}`, {
   webUserPoolClient: cognitoStack.webUserPoolClient,
   serverUserPoolClient: cognitoStack.serverUserPoolClient,
   orderEventBus: eventsStack.orderEventBus
+})
+new OrderFlowStack(app, `OrderFlowStack-${stageName}`, { 
+  serviceName,
+  stageName,
+  ordersTable: dbStack.ordersTable,
+  orderEventBus: eventsStack.orderEventBus,
+  restaurantNotificationTopic: eventsStack.restaurantNotificationTopic,
+  userNotificationTopic: eventsStack.userNotificationTopic
 })

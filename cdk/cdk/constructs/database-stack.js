@@ -13,6 +13,14 @@ class DatabaseStack extends Stack {
       billingMode: BillingMode.PAY_PER_REQUEST
     })
 
+    const ordersTable = new Table(this, 'OrdersTable', {
+      partitionKey: {
+        name: 'id',
+        type: AttributeType.STRING,
+      },
+      billingMode: BillingMode.PAY_PER_REQUEST
+    })
+
     const idempotencyTable = new Table(this, 'IdempotencyTable', {
       partitionKey: {
         name: 'id',
@@ -23,6 +31,7 @@ class DatabaseStack extends Stack {
     })
 
     this.restaurantsTable = restaurantsTable
+    this.ordersTable = ordersTable
     this.idempotencyTable = idempotencyTable
   }
 }

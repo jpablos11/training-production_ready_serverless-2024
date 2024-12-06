@@ -22,7 +22,7 @@ class EventsStack extends Stack {
     this.orderEventBus = orderEventBus
 
     const restaurantNotificationTopic = new Topic(this, 'RestaurantNotificationTopic')
-    const onFailureQueue = new Queue(this, 'OnFailureQueue')
+    const onFailureQueue = new Queue(this, 'OnFailureQueue')    
 
     const notifyRestaurantFunction = new NodejsFunction(this, 'NotifyRestaurantFunction', {
       runtime: Runtime.NODEJS_18_X,
@@ -49,7 +49,7 @@ class EventsStack extends Stack {
     rule.addTarget(new LambdaFunction(notifyRestaurantFunction))
 
     const alarmTopic = new Topic(this, 'AlarmTopic')
-    alarmTopic.addSubscription(new EmailSubscription('jpablos11@gmail.com'))
+    alarmTopic.addSubscription(new EmailSubscription('theburningmonk@gmail.com'))
 
     const onFailureAlarm = new Alarm(this, 'OnFailureQueueAlarm', {
       alarmName: `[${props.stageName}][NotifyRestaurant function] Failed events detected in OnFailure destination`,
@@ -75,6 +75,9 @@ class EventsStack extends Stack {
     if (isE2eTest) {
       this.declareTestResources(restaurantNotificationTopic, orderEventBus)
     }
+
+    this.restaurantNotificationTopic = restaurantNotificationTopic
+    this.userNotificationTopic = new Topic(this, 'UserNotificationTopic')
   }
 
   declareTestResources(restaurantNotificationTopic, orderEventBus) {
