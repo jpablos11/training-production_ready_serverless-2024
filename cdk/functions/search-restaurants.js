@@ -1,3 +1,6 @@
+const { Logger } = require('@aws-lambda-powertools/logger')
+const logger = new Logger({ serviceName: process.env.serviceName })
+
 const { DynamoDB } = require("@aws-sdk/client-dynamodb")
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb")
 const dynamodbClient = new DynamoDB()
@@ -15,6 +18,7 @@ const tableName = process.env.restaurants_table
 
 const findRestaurantsByTheme = async (theme, count) => {
   console.log(`finding (up to ${count}) restaurants with the theme ${theme}...`)
+  logger.debug('finding restaurants...', { count, theme })
 
   const resp = await dynamodb.send(new ScanCommand({
     TableName: tableName,
@@ -22,7 +26,9 @@ const findRestaurantsByTheme = async (theme, count) => {
     FilterExpression: "contains(themes, :theme)",
     ExpressionAttributeValues: { ":theme": theme }
   }))
-  console.log(`found ${resp.Items.length} restaurants`)
+
+  logger.debug('found restaurants...', { total: resp.Items.length })
+
   return resp.Items
 }
 

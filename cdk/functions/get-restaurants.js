@@ -1,3 +1,6 @@
+const { Logger } = require('@aws-lambda-powertools/logger')
+const logger = new Logger({ serviceName: process.env.serviceName })
+
 const { DynamoDB } = require("@aws-sdk/client-dynamodb")
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb")
 const dynamodbClient = new DynamoDB()
@@ -14,13 +17,18 @@ const { service_name, ssm_stage_name } = process.env
 const tableName = process.env.restaurants_table
 
 const getRestaurants = async (count) => {
-  console.log(`fetching ${count} restaurants from ${tableName}...`)
+  logger.debug('getting restaurants from DynamoDB...', {
+    count,
+    tableName
+  })
 
   const resp = await dynamodb.send(new ScanCommand({
     TableName: tableName,
     Limit: count,
   }))
-  console.log(`found ${resp.Items.length} restaurants`)
+  logger.debug('found restaurants', {
+    count: resp.Items.length
+  })
   return resp.Items
 }
 

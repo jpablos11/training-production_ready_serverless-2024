@@ -1,3 +1,6 @@
+const { Logger } = require('@aws-lambda-powertools/logger')
+const logger = new Logger({ serviceName: process.env.serviceName })
+
 const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge')
 const eventBridge = new EventBridgeClient()
 const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns')
@@ -21,7 +24,7 @@ const handler = async (event) => {
   await sns.send(publishCmd)
 
   const { restaurantName, orderId } = order
-  console.log(`notified restaurant [${restaurantName}] of order [${orderId}]`)
+  logger.debug('notified restaurant...', { orderId, restaurantName })
 
   const putEventsCmd = new PutEventsCommand({
     Entries: [{
@@ -33,7 +36,10 @@ const handler = async (event) => {
   })
   await eventBridge.send(putEventsCmd)
 
-  console.log(`published 'restaurant_notified' event to EventBridge`)
+  logger.debug(`published event into EventBridge`, {
+    eventType: 'restaurant_notified',
+    busName
+  })
 
   return orderId
 }
