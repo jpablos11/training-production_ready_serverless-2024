@@ -6,6 +6,7 @@ const { DatabaseStack } = require('./constructs/database-stack')
 const { CognitoStack } = require('./constructs/cognito-stack')
 const { EventsStack } = require('./constructs/events-stack')
 const { OrderFlowStack } = require('./constructs/order-flow-stack')
+const { LambdaEnvVarsAspect } = require('./aspects/lambda-env-vars-aspect')
 
 const app = new cdk.App()
 let stageName = app.node.tryGetContext('stageName')
@@ -49,3 +50,5 @@ new OrderFlowStack(app, `OrderFlowStack-${stageName}`, {
   restaurantNotificationTopic: eventsStack.restaurantNotificationTopic,
   userNotificationTopic: eventsStack.userNotificationTopic
 })
+
+cdk.Aspects.of(app).add(new LambdaEnvVarsAspect(serviceName))
