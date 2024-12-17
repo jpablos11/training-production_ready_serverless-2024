@@ -1,4 +1,6 @@
+const middy = require('@middy/core')
 const { Logger } = require('@aws-lambda-powertools/logger')
+const { injectLambdaContext } = require('@aws-lambda-powertools/logger/middleware')
 const logger = new Logger({ serviceName: process.env.serviceName })
 
 const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge')
@@ -7,7 +9,9 @@ const chance = require('chance').Chance()
 
 const busName = process.env.bus_name
 
-module.exports.handler = async (event) => {
+module.exports.handler = middy(async (event, context) => {
+  logger.refreshSampleRateCalculation()
+
   const restaurantName = JSON.parse(event.body).restaurantName
 
   const orderId = chance.guid()
@@ -37,4 +41,4 @@ module.exports.handler = async (event) => {
   }
 
   return response
-}
+}).use(injectLambdaContext(logger))

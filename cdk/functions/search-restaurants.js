@@ -1,4 +1,5 @@
 const { Logger } = require('@aws-lambda-powertools/logger')
+const { injectLambdaContext } = require('@aws-lambda-powertools/logger/middleware')
 const logger = new Logger({ serviceName: process.env.serviceName })
 
 const { DynamoDB } = require("@aws-sdk/client-dynamodb")
@@ -17,6 +18,8 @@ const { service_name, ssm_stage_name } = process.env
 const tableName = process.env.restaurants_table
 
 const findRestaurantsByTheme = async (theme, count) => {
+  logger.refreshSampleRateCalculation()
+
   console.log(`finding (up to ${count}) restaurants with the theme ${theme}...`)
   logger.debug('finding restaurants...', { count, theme })
 
@@ -52,4 +55,4 @@ module.exports.handler = middy(async (event, context) => {
     config: `/${service_name}/${ssm_stage_name}/search-restaurants/config`,
     secretString: `/${service_name}/${ssm_stage_name}/search-restaurants/secretString`
   }
-}))
+})).use(injectLambdaContext(logger))
