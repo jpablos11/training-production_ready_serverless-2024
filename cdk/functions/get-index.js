@@ -1,7 +1,12 @@
 const middy = require('@middy/core')
+
 const { Logger } = require('@aws-lambda-powertools/logger')
 const { injectLambdaContext } = require('@aws-lambda-powertools/logger/middleware')
 const logger = new Logger({ serviceName: process.env.serviceName })
+
+//const { Tracer } = require('@aws-lambda-powertools/tracer')
+//const { captureLambdaHandler } = require('@aws-lambda-powertools/tracer/middleware')
+//const tracer = new Tracer({ serviceName: process.env.serviceName })
 
 const fs = require("fs")
 const Mustache = require('mustache')
@@ -32,7 +37,10 @@ const getRestaurants = async () => {
   const httpReq = http.get(restaurantsApiRoot, {
     headers: opts.headers
   })
-  return (await httpReq).data
+  const data = (await httpReq).data
+  //tracer.addResponseAsMetadata(data, 'GET /restaurants')
+
+  return data
 }
 
 module.exports.handler = middy(async (event, context) => {
@@ -60,4 +68,4 @@ module.exports.handler = middy(async (event, context) => {
   }
 
   return response
-}).use(injectLambdaContext(logger))
+}).use(injectLambdaContext(logger))//.use(captureLambdaHandler(tracer))
