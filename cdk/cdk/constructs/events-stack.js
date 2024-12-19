@@ -4,7 +4,7 @@ const { LambdaFunction, SqsQueue } = require('aws-cdk-lib/aws-events-targets')
 const { Topic, Subscription } = require('aws-cdk-lib/aws-sns')
 const { EmailSubscription } = require("aws-cdk-lib/aws-sns-subscriptions")
 const { Runtime } = require('aws-cdk-lib/aws-lambda')
-const { NodejsFunction } = require('aws-cdk-lib/aws-lambda-nodejs')
+const { TracedNodejsFunction } = require('./TracedNodejsFunction')
 const { Queue } = require('aws-cdk-lib/aws-sqs')
 const { PolicyStatement, ServicePrincipal } = require('aws-cdk-lib/aws-iam')
 const { SqsDestination } = require('aws-cdk-lib/aws-lambda-destinations')
@@ -22,9 +22,9 @@ class EventsStack extends Stack {
     this.orderEventBus = orderEventBus
 
     const restaurantNotificationTopic = new Topic(this, 'RestaurantNotificationTopic')
-    const onFailureQueue = new Queue(this, 'OnFailureQueue')    
+    const onFailureQueue = new Queue(this, 'OnFailureQueue')
 
-    const notifyRestaurantFunction = new NodejsFunction(this, 'NotifyRestaurantFunction', {
+    const notifyRestaurantFunction = new TracedNodejsFunction(this, 'NotifyRestaurantFunction', {
       runtime: Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: 'functions/notify-restaurant.js',
