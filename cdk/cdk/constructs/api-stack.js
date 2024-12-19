@@ -1,7 +1,7 @@
 const { Stack, Fn, CfnOutput, CfnParameter } = require('aws-cdk-lib')
 const { Runtime } = require('aws-cdk-lib/aws-lambda')
 const { RestApi, LambdaIntegration, AuthorizationType, CfnAuthorizer } = require('aws-cdk-lib/aws-apigateway')
-const { NodejsFunction } = require('aws-cdk-lib/aws-lambda-nodejs')
+const { TracedNodejsFunction } = require('./TracedNodejsFunction')
 const { PolicyStatement, Effect } = require('aws-cdk-lib/aws-iam')
 const { StringParameter } = require('aws-cdk-lib/aws-ssm')
 
@@ -13,7 +13,8 @@ class ApiStack extends Stack {
 
     const api = new RestApi(this, `${props.stageName}-MyApi`, {
       deployOptions: {
-        stageName: props.stageName
+        stageName: props.stageName,
+        tracingEnabled: true
       }
     })
 
@@ -45,7 +46,7 @@ class ApiStack extends Stack {
   declareGetIndexFunction(props, api) {
     const apiLogicalId = this.getLogicalId(api.node.defaultChild)
 
-    const getIndexFunction = new NodejsFunction(this, 'GetIndex', {
+    const getIndexFunction = new TracedNodejsFunction(this, 'GetIndex', {
       runtime: Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: 'functions/get-index.js',
@@ -82,7 +83,7 @@ class ApiStack extends Stack {
   }
 
   declareGetRestaurantsFunction(props) {
-    const getRestaurantsFunction = new NodejsFunction(this, 'GetRestaurants', {
+    const getRestaurantsFunction = new TracedNodejsFunction(this, 'GetRestaurants', {
       runtime: Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: 'functions/get-restaurants.js',
@@ -109,7 +110,7 @@ class ApiStack extends Stack {
   }
 
   declareSearchRestaurantsFunction(props) {
-    const searchRestaurantsFunction = new NodejsFunction(this, 'SearchRestaurants', {
+    const searchRestaurantsFunction = new TracedNodejsFunction(this, 'SearchRestaurants', {
       runtime: Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: 'functions/search-restaurants.js',
@@ -146,7 +147,7 @@ class ApiStack extends Stack {
   }
 
   declarePlaceOrderFunction(props) {
-    const placeOrderFunction = new NodejsFunction(this, 'PlaceOrder', {
+    const placeOrderFunction = new TracedNodejsFunction(this, 'PlaceOrder', {
       runtime: Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: 'functions/place-order.js',
