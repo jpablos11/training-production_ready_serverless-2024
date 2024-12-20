@@ -3,9 +3,8 @@ const middy = require('@middy/core')
 const { Logger, injectLambdaContext } = require('@aws-lambda-powertools/logger')
 const logger = new Logger({ serviceName: process.env.serviceName })
 
-//const { Tracer } = require('@aws-lambda-powertools/tracer')
-//const { captureLambdaHandler } = require('@aws-lambda-powertools/tracer/middleware')
-//const tracer = new Tracer({ serviceName: process.env.serviceName })
+// const { Tracer, captureLambdaHandler } = require('@aws-lambda-powertools/tracer')
+// const tracer = new Tracer({ serviceName: process.env.serviceName })
 
 const fs = require("fs")
 const Mustache = require('mustache')
