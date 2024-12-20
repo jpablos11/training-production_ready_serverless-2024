@@ -47,7 +47,7 @@ class ApiStack extends Stack {
     const apiLogicalId = this.getLogicalId(api.node.defaultChild)
 
     const getIndexFunction = new TracedNodejsFunction(this, 'GetIndex', {
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_22_X,
       handler: 'handler',
       entry: 'functions/get-index.js',
       bundling: {
@@ -84,7 +84,7 @@ class ApiStack extends Stack {
 
   declareGetRestaurantsFunction(props) {
     const getRestaurantsFunction = new TracedNodejsFunction(this, 'GetRestaurants', {
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_22_X,
       handler: 'handler',
       entry: 'functions/get-restaurants.js',
       environment: {
@@ -111,7 +111,7 @@ class ApiStack extends Stack {
 
   declareSearchRestaurantsFunction(props) {
     const searchRestaurantsFunction = new TracedNodejsFunction(this, 'SearchRestaurants', {
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_22_X,
       handler: 'handler',
       entry: 'functions/search-restaurants.js',
       environment: {
@@ -148,7 +148,7 @@ class ApiStack extends Stack {
 
   declarePlaceOrderFunction(props) {
     const placeOrderFunction = new TracedNodejsFunction(this, 'PlaceOrder', {
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_22_X,
       handler: 'handler',
       entry: 'functions/place-order.js',
       environment: {                
