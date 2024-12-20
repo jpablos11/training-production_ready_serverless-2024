@@ -1,7 +1,6 @@
 const middy = require('@middy/core')
 
-const { Logger } = require('@aws-lambda-powertools/logger')
-const { injectLambdaContext } = require('@aws-lambda-powertools/logger/middleware')
+const { Logger, injectLambdaContext } = require('@aws-lambda-powertools/logger')
 const logger = new Logger({ serviceName: process.env.serviceName })
 
 //const { Tracer } = require('@aws-lambda-powertools/tracer')

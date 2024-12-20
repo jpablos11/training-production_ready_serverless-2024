@@ -25,7 +25,7 @@ class EventsStack extends Stack {
     const onFailureQueue = new Queue(this, 'OnFailureQueue')
 
     const notifyRestaurantFunction = new TracedNodejsFunction(this, 'NotifyRestaurantFunction', {
-      runtime: Runtime.NODEJS_22_X,
+      runtime: Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: 'functions/notify-restaurant.js',
       onFailure: new SqsDestination(onFailureQueue),
